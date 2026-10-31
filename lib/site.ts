@@ -3,11 +3,10 @@ export const SITE_URL='https://averan.eu';
 /**
  * Whether this deployment should be indexed by search engines.
  *
- * `SITE_LIVE` wins when it is set either way. With it unset, a production
- * deployment is indexable and everything else is not — so the live site is
- * never invisible to Google because a flag was missed, while previews and
- * local builds stay out of the index.
+ * Indexing is on by default. Vercel preview and development deployments are
+ * excluded, and `SITE_NOINDEX=true` suppresses it deliberately — but nothing
+ * else can switch it off, so the live site can never end up invisible to
+ * Google because a flag was left set in a dashboard.
  */
-export const isLive=process.env.SITE_LIVE!==undefined
- ? process.env.SITE_LIVE==='true'
- : process.env.VERCEL_ENV==='production';
+const environment=process.env.VERCEL_ENV;
+export const isLive=process.env.SITE_NOINDEX!=='true'&&environment!=='preview'&&environment!=='development';

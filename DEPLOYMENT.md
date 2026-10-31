@@ -24,11 +24,16 @@ DNS records it gives you, then set in Vercel:
 A webhook (`CONTACT_WEBHOOK_URL`) can be added alongside for a CRM. Email is
 what the site relies on; a webhook failure never tells a visitor to try again.
 
-**3. Check indexing.** `SITE_LIVE` no longer has to be remembered: production
-deployments are indexable and previews are not. Set `SITE_LIVE=false` only to
-deliberately keep production out of search results. After the first deploy on
-the real domain, open `https://averan.eu/robots.txt` and confirm it reads
-`Allow: /` rather than `Disallow: /`.
+**3. Confirm the site is deploying, then check indexing.** Search engines are
+allowed by default — no variable has to be set, and an old `SITE_LIVE` entry in
+Vercel now does nothing and can be deleted. Only `SITE_NOINDEX=true` suppresses
+indexing.
+
+Before trusting that, confirm Vercel is actually building this repository:
+Project → Settings → Git should show `Nelkaiagency/Averan` on branch `main`,
+and the Deployments tab should list a build for the most recent commit. Open
+`https://averan.eu/robots.txt` and confirm it reads `Allow: /`; if it still
+reads `Disallow: /`, the deployment is stale rather than misconfigured.
 
 **Optional, recommended once live:** Cloudflare Turnstile is free and blocks
 form spam. Set `TURNSTILE_SECRET_KEY` and `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
