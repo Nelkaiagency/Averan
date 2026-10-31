@@ -10,7 +10,7 @@ const schema=data((await fs.readFile(new URL('../lib/contact.ts',import.meta.url
 const source=(await fs.readFile(new URL('../app/api/contact/route.ts',import.meta.url),'utf8')).replace("'@/lib/contact'",JSON.stringify(schema)).replace("'next/server'",JSON.stringify(pathToFileURL(require.resolve('next/server')).href));
 const {POST}=await import(data(source));
 const originalFetch=globalThis.fetch;
-const keys=['SITE_ORIGIN','CONTACT_WEBHOOK_URL','TURNSTILE_SECRET_KEY','NEXT_PUBLIC_TURNSTILE_SITE_KEY'];
+const keys=['SITE_ORIGIN','CONTACT_WEBHOOK_URL','CONTACT_WEBHOOK_TOKEN','TURNSTILE_SECRET_KEY','NEXT_PUBLIC_TURNSTILE_SITE_KEY','RESEND_API_KEY','CONTACT_EMAIL_FROM','CONTACT_EMAIL_TO'];
 const saved=Object.fromEntries(keys.map(k=>[k,process.env[k]]));
 const payload={name:'Preview Tester',company:'Example Company',email:'preview@example.com',industry:'Automotive Dealerships',solution:'After-Hours Lead Response',consent:true,phone:'+353 123 4567',message:'Please review this illustrative operational process.',website:'',token:'test-token'};
 let checks=0;
@@ -42,5 +42,37 @@ try{
  verify={success:false,hostname:'averan.eu'};await check('failed spam verification',request(),400);
  verify={success:true,hostname:'other.example'};await check('wrong verification hostname',request(),400);
  globalThis.fetch=async()=>{throw new Error('simulated timeout')};await check('network failure',request(),502);
+
+ // --- email delivery -------------------------------------------------
+ delete process.env.CONTACT_WEBHOOK_URL;delete process.env.TURNSTILE_SECRET_KEY;delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+ process.env.RESEND_API_KEY='test-resend-key';process.env.CONTACT_EMAIL_FROM='Averan Website <website@averan.eu>';process.env.CONTACT_EMAIL_TO='info@averan.eu';
+ let emailStatus=200,emailBody,emailAuth;
+ globalThis.fetch=async(url,options)=>{if(String(url).includes('api.resend.com')){emailBody=JSON.parse(options.body);emailAuth=options.headers.Authorization;return Response.json({id:'mock'},{status:emailStatus})}throw new Error('unexpected call: '+url)};
+ await check('email delivery without a webhook',request(),200);
+ assert.equal(emailAuth,'Bearer test-resend-key');
+ assert.deepEqual(emailBody.to,['info@averan.eu']);
+ assert.equal(emailBody.reply_to,payload.email,'reply goes back to the enquirer');
+ assert.ok(emailBody.text.includes(payload.message),'message reaches the inbox');
+ assert.ok(emailBody.subject.includes(payload.name));
+ assert.ok(!emailBody.html.includes('<script'),'enquiry text is escaped');
+ await check('script tags in a message are escaped',request({...payload,message:'<script>alert(1)</script>'}),200);
+ assert.ok(!emailBody.html.includes('<script>'),'no raw script tag survives into the email');
+ emailStatus=500;await check('email rejected',request(),502);emailStatus=200;
+
+ // Turnstile is skipped while unconfigured, so a missing token still sends.
+ await check('no spam keys configured',request({...payload,token:''}),200);
+
+ // --- email plus webhook ---------------------------------------------
+ process.env.CONTACT_WEBHOOK_URL='https://delivery.example/enquiries';
+ let webhookOk=true,webhookCalled=false;
+ globalThis.fetch=async(url,options)=>{if(String(url).includes('api.resend.com')){emailBody=JSON.parse(options.body);return Response.json({id:'mock'})}webhookCalled=true;if(!webhookOk)throw new Error('crm down');return Response.json({accepted:true,receiptId:'mock-durable-id'})};
+ await check('email and webhook together',request(),200);assert.equal(webhookCalled,true);
+ webhookOk=false;await check('webhook failure does not fail the enquiry',request(),200);
+ webhookOk=true;
+
+ // --- nothing configured ----------------------------------------------
+ delete process.env.RESEND_API_KEY;delete process.env.CONTACT_EMAIL_FROM;delete process.env.CONTACT_WEBHOOK_URL;
+ await check('no delivery configured',request(),503);
+
  console.log(`${checks} handler checks passed. External delivery and Turnstile calls were mocked; no data was sent.`);
 }finally{globalThis.fetch=originalFetch;for(const key of keys){if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key]}}
