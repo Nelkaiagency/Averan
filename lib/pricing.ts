@@ -1,4 +1,4 @@
-// DRAFT packages and prices. Confirm every figure and promise before SITE_LIVE=true.
+// DRAFT packages and prices. Confirm every figure and promise before going live.
 export type Plan={id:string;name:string;tagline:string;price:string;priceNote:string;cta:string;recommended?:boolean;includes:string[]};
 export const plans:Plan[]=[
  {id:'review',name:'Free Review',tagline:'Find out what is worth fixing first.',price:'€0',priceNote:'No obligation',cta:'Book a free call',includes:['Introductory call on Google Meet','We map one install job with you, from enquiry to invoice','A short written summary of the quick wins','Honest advice, even if the answer is “you don’t need us”']},
