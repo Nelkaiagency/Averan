@@ -38,13 +38,12 @@ Set hosting environment variables (server secrets must never have NEXT_PUBLIC pr
 | EMAIL_READY | true only after inbound mailbox verification |
 | SITE_LIVE | true only for the approved production build |
 | LINKEDIN_URL | Genuine https://www.linkedin.com/ profile, optional |
-| FOUNDER_PHOTO_PATH | Optional local public image path, e.g. /milosz-nelka.jpg |
 
 Rebuild after changes: public keys, metadata and availability copy are rendered at build time. Keep preview environments `SITE_LIVE=false`, with separate Turnstile hostnames/keys and staging delivery. No credentials belong in Git. Add hosting firewall rate limits for `/api/contact`; the app already limits body size, validates origin and fields, checks the honeypot and verifies Turnstile server-side. [Turnstile verification](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
 
 ## 4. Publication gates
 
-- Confirm founder introduction; optionally supply an authentic portrait and genuine social URL.
+- Optionally supply a genuine social URL (LinkedIn).
 - Finalise the two draft legal notices with the actual controller identity, hosting/contact processors, retention period, rights contact and deployed cookie behavior. They are explicitly incomplete and must not be published as final policies.
 - Verify valid form receipt, destination delivery, invalid fields, spam rejection, expired verification and upstream failure on staging. Local mocked handler checks do not verify a real inbox.
 - Set `SITE_LIVE=true` only after these gates pass, rebuild, verify canonical URLs, sitemap and robots. Preview robots deliberately block indexing.
