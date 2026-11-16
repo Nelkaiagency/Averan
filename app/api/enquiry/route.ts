@@ -8,7 +8,7 @@ const schema=z.object({
  business:z.string().trim().max(120),
  email:z.email().max(254),
  phone:z.string().trim().max(30).refine(v=>!v||/^[+()\d\s.\-]{6,30}$/.test(v)),
- trade:z.enum(['Solar PV & batteries','Heat pumps','Insulation & retrofit','Electrical & EV chargers','Other energy installs']),
+ trade:z.enum(['Solar PV & batteries','Heat pumps','Insulation & retrofit','Electrical & EV chargers','Other energy installs','Other local service business']),
  message:z.string().trim().max(1500),
  consent:z.literal(true),
  website:z.string().max(0),
