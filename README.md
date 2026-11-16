@@ -1,6 +1,6 @@
 # Averan
 
-Averan operations and technology consultancy website, built with Next.js.
+Averan lead generation agency website, built with Next.js.
 
 ## Development
 

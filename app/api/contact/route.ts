@@ -18,7 +18,7 @@ const escapeHtml=(value:string)=>value.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'
 type Enquiry=Record<string,unknown>;
 
 function emailContent(enquiry:Enquiry){
- const rows:[string,string][]=[['Name',String(enquiry.name||'')],['Company',String(enquiry.company||'—')],['Email',String(enquiry.email||'')],['Phone',String(enquiry.phone||'—')],['Industry',String(enquiry.industry||'—')],['Interested in',String(enquiry.solution||'—')],['Message',String(enquiry.message||'—')]];
+ const rows:[string,string][]=[['Name',String(enquiry.name||'')],['Company',String(enquiry.company||'—')],['Email',String(enquiry.email||'')],['Phone',String(enquiry.phone||'—')],['Message',String(enquiry.message||'—')]];
  return {
   text:rows.map(([label,value])=>`${label}: ${value}`).join('\n'),
   html:`<table style="font-family:system-ui,sans-serif;font-size:14px;border-collapse:collapse">${rows.map(([label,value])=>`<tr><td style="padding:6px 14px 6px 0;color:#6b7280;vertical-align:top">${escapeHtml(label)}</td><td style="padding:6px 0;white-space:pre-wrap">${escapeHtml(value)}</td></tr>`).join('')}</table>`,
